@@ -1,0 +1,32 @@
+{
+  "host": "192.168.1.1",
+  "port": 22,
+  "user": "user",
+  "key": "",
+  "password": "pAssW0rd123!",
+  "timeout": 10,
+  "banner_timeout": 10,
+  "auth_timeout": 10,
+  "keepalive": 30,
+  "accept_host_key": true,
+  "known_hosts": "~/.ssh/known_hosts",
+  "hops": [
+    {
+      "host": "192.168.1.2",
+      "port": 22,
+      "user": "user1",
+      "key": "",
+      "password": "An0ther_pAssW0rd",
+      "timeout": 10,
+      "banner_timeout": 10,
+      "auth_timeout": 10
+    },
+    {
+      "host": "192.168.1.3",
+      "port": 22,
+      "user": "user2",
+      "key": "",
+      "password": "MultiPass!"
+    }
+  ]
+}
