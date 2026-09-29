@@ -16,8 +16,11 @@ if os.name == 'posix':
     import signal
     import termios
     import tty
+if os.name == 'nt':
+    import msvcrt
 
 import paramiko
+
 
 # -- Defaults ------------------------------------------------------------------------------------ #
 TIMEOUT = 10
@@ -28,7 +31,7 @@ ACCEPT_HOST_KEY = True
 PTY = False
 
 # ------------------------------------------------------------------------------------------------ #
-SCRIPT_INFO = {'file': os.path.basename(sys.argv[0]), 'name': 'SSJ', 'version': '1.0'}
+SCRIPT_INFO = {'file': os.path.basename(sys.argv[0]), 'name': 'SSJ', 'version': '1.0.1'}
 
 # ------------------------------------------------------------------------------------------------ #
 def usage(ret_code=0, ret_msg=''):
@@ -38,7 +41,7 @@ def usage(ret_code=0, ret_msg=''):
     print(f'Usage:\n'
           f'\t{SCRIPT_INFO["file"]} [-t] --profile profile.json [command]\n'
           '\n'
-          f'\t{SCRIPT_INFO["file"]} [-t]\n'         
+          f'\t{SCRIPT_INFO["file"]} [-t]\n'
           f'\t\t--dest user:password@target.example.org[:port]\n'
           f'\t\t[--jump user:password@jump_1.example.org[:port]\n'
           f'\t\t--jump user:password@jump_n.example.org[:port]]\n'
@@ -140,9 +143,16 @@ def ssh_connect(profile_dest, sock=None):
 
 # ------------------------------------------------------------------------------------------------ #
 def from_stdin(ch):
-    stdin_fd = sys.stdin.fileno()
     while True:
-        data = os.read(stdin_fd, 1)
+        if os.name == 'posix':
+            stdin_fd = sys.stdin.fileno()
+            data = os.read(stdin_fd, 1)
+        elif os.name == 'nt':
+            data = msvcrt.getch()
+        else:
+            print(f'Unsupported operating system: "{os.name}"', file=sys.stderr)
+            sys.exit(1)
+
         if not data:
             return
         try:
