@@ -247,13 +247,15 @@ ssj.py --dest user:password@host.example.org
 
 This may expose credentials through shell history or the operating system's process listing.
 
-For regular use, prefer a profile:
+For regular batch use, prefer a profile:
 
 ```sh
 ssj.py --profile server.json
 ```
 
 and protect the profile appropriately.
+
+For interactive connections, if user credentials are not specified SSJ will ask for them.
 
 The default `accept_host_key` behavior is intended to make SSJ convenient for multi-hop and temporary environments. For environments where host identity must be explicitly verified, set:
 
@@ -297,17 +299,19 @@ returns the exit status reported by the remote SSH channel.
 ## Command-line options
 
 ```text
-ssj.py [-t] --profile profile.json [command]
+        ssj.py [-t] -p|--profile profile.json [command]
 
-ssj.py [-t]
-       --dest user:password@target.example.org[:port]
-       [--jump user:password@jump.example.org[:port]
-        --jump user:password@jump.example.org[:port]]
-       [command]
+        ssj.py [-t]
+                -d|--dest [user:[password]]@target.example.org[:port]
+                [-j|--jump [user:[password]]@jump_1.example.org[:port]
+                -j|--jump [user:[password]]@jump_n.example.org[:port]]
+                [command]
 
-ssj.py -h|--help
-ssj.py -V|--version
-ssj.py -v|--verbose
+        ssj.py -h|--help
+
+        ssj.py -V|--version
+
+        ssj.py -v|--verbose
 ```
 
 ### Options
@@ -316,10 +320,10 @@ ssj.py -v|--verbose
 -p, --profile FILE
     Read connection settings from a JSON profile.
 
--d, --dest USER:PASSWORD@HOST[:PORT]
+-d, --dest [USER:[PASSWORD]]@HOST[:PORT]
     Specify the target directly.
 
--j, --jump USER:PASSWORD@HOST[:PORT]
+-j, --jump [USER:[PASSWORD]]@HOST[:PORT]
     Add an SSH jump host. Can be specified multiple times.
 
 -t
