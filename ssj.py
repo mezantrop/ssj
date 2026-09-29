@@ -7,6 +7,7 @@
 # ------------------------------------------------------------------------------------------------ #
 
 import getopt
+import getpass
 import json
 import os
 import shutil
@@ -124,17 +125,28 @@ def ssh_connect(profile_dest, sock=None):
     if profile_dest.get('accept_host_key', ACCEPT_HOST_KEY):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    client.connect(
-        profile_dest['host'],
-        port=profile_dest.get('port'),
-        username=profile_dest['user'],
-        key_filename=profile_dest.get('key', None) or None,
-        password=profile_dest['password'],
-        sock=sock,
-        timeout=profile_dest.get('timeout', TIMEOUT) or TIMEOUT,
-        banner_timeout=profile_dest.get('banner_timeout', BANNER_TIMEOUT) or BANNER_TIMEOUT,
-        auth_timeout=profile_dest.get('auth_timeout', AUTH_TIMEOUT) or AUTH_TIMEOUT,
-    )
+    host = profile_dest['host']
+    user = profile_dest.get('user') or input(f'Username@{host}: ')
+    key = profile_dest.get('key', None) or None
+    password = profile_dest.get('password')
+    if not key and not password:
+        password = getpass.getpass(prompt=f'{user}@{host} Password: ')
+
+    try:
+        client.connect(
+            host,
+            port=profile_dest.get('port'),
+            username=user,
+            key_filename=key,
+            password=password,
+            sock=sock,
+            timeout=profile_dest.get('timeout', TIMEOUT) or TIMEOUT,
+            banner_timeout=profile_dest.get('banner_timeout', BANNER_TIMEOUT) or BANNER_TIMEOUT,
+            auth_timeout=profile_dest.get('auth_timeout', AUTH_TIMEOUT) or AUTH_TIMEOUT,
+        )
+    except paramiko.SSHException as err:
+        print(f'ssh_connect(): {err}', file=sys.stderr)
+        sys.exit(1)
 
     if profile_dest.get('keepalive'):
         client.get_transport().set_keepalive(profile_dest['keepalive'])
@@ -183,8 +195,8 @@ def make_resize_handler(ch):
 if __name__ == '__main__':
     profile, command, verbose = read_cli_args(sys.argv[1:])
 
-    if not profile.get('host') or not profile.get('user'):
-        usage(1, f'No host or user specified')
+    if not profile.get('host'):
+        usage(1, f'No destination host specified')
 
     profile['port'] = profile.get('port', 22) or 22
     profile['key'] = profile.get('key', None) or None
@@ -196,7 +208,7 @@ if __name__ == '__main__':
     ch = None
     for i, hop in enumerate(profile['hops']):
         if verbose:
-            print(f'{hop["host"]}:{hop["port"]} > ', end='', file=sys.stderr)
+            print(f'{hop["host"]}:{hop["port"]} > ', end='', file=sys.stderr, flush=True)
         h = ssh_connect(hop, ch)
         hops.append(h)
 
@@ -206,13 +218,13 @@ if __name__ == '__main__':
             next_dest = profile
 
         if verbose:
-            print(f'{next_dest["host"]}:{next_dest["port"]} | ', end='', file=sys.stderr)
+            print(f'{next_dest["host"]}:{next_dest["port"]} | ', end='', file=sys.stderr, flush=True)
         ch = h.get_transport().open_channel(kind='direct-tcpip',
                                             dest_addr=(next_dest['host'], next_dest['port']),
                                             src_addr=('127.0.0.1', 0))
 
     if verbose:
-        print(f'{profile["host"]}:{profile["port"]} > ', end='', file=sys.stderr)
+        print(f'{profile["host"]}:{profile["port"]} > ', end='', file=sys.stderr, flush=True)
     dest = ssh_connect(profile, sock=ch)
 
     if command:
