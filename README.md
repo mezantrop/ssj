@@ -1,5 +1,7 @@
 # SSJ - SSH-jump
 
+<a href="https://www.buymeacoffee.com/mezantrop" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 **SSJ** is a small SSH client with support for multi-hop connections through SSH `direct-tcpip` channels.
 
 It is roughly inspired by:
