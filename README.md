@@ -1,4 +1,4 @@
-# SSJ
+# SSJ - SSH-jump
 
 **SSJ** is a small SSH client with support for multi-hop connections through SSH `direct-tcpip` channels.
 
